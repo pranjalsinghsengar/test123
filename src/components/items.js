@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Items = ({ savedData, setSavedData }) => {
+const Items = ({ selectedItems, setSelectedItems }) => {
   const MenuSchema = [
     {
       menuName: "menu1",
@@ -39,38 +39,64 @@ const Items = ({ savedData, setSavedData }) => {
     },
   ];
 
-  const [selectedItems, setSelectedItems] = useState({
+  const selection = {
     menu: null,
     category: null,
     items: [],
-  });
+  };
 
   const handleMenuClick = (menuName) => {
-    setSelectedItems({
-      menu: menuName === selectedItems.menu ? null : menuName,
-      category: null,
-      items: ["item1"],
-    });
+    const isMenuSelected =
+      Array.isArray(selectedItems) &&
+      selectedItems.some((item) => item.menu === menuName);
+
+    let updatedItems;
+
+    if (isMenuSelected) {
+      updatedItems = selectedItems.filter((item) => item.menu !== menuName);
+    } else {
+      updatedItems = [
+        ...selectedItems,
+        { menu: menuName, category: null, items: [] },
+      ];
+    }
+
+    setSelectedItems(updatedItems);
   };
 
-  const handleSelectedCategory = (categoryName) => {
-    setSelectedItems({
-      ...selectedItems,
-      category: categoryName === selectedItems.category ? null : categoryName,
-      items: [],
-    });
+  const handleSelectedCategory = (menuName, categoryName) => {
+    const isCategorySelected =
+      Array.isArray(selectedItems) &&
+      selectedItems.some(
+        (item) => item.category === categoryName && item.menu === menuName
+      );
+
+    let updatedItems;
+
+    if (isCategorySelected) {
+      updatedItems = selectedItems.filter(
+        (item) => !(item.menu === menuName && item.category === categoryName)
+      );
+    } else {
+      updatedItems = [
+        ...selectedItems,
+        { menu: menuName, category: categoryName, items: [] },
+      ];
+    }
+
+    setSelectedItems(updatedItems);
   };
 
-  const handleSelectedItem = (itemName) => {
-    const newItem = selectedItems.items.includes(itemName)
-      ? selectedItems.items.filter((item) => item !== itemName)
-      : [...selectedItems.items, itemName];
+  // const handleSelectedItem = (itemName) => {
+  //   const newItem = selectedItems.items.includes(itemName)
+  //     ? selectedItems.items.filter((item) => item !== itemName)
+  //     : [...selectedItems.items, itemName];
 
-    setSelectedItems({
-      ...selectedItems,
-      items: newItem,
-    });
-  };
+  //   setSelectedItems({
+  //     ...selectedItems,
+  //     items: newItem,
+  //   });
+  // };
 
   return (
     <div>
@@ -82,19 +108,24 @@ const Items = ({ savedData, setSavedData }) => {
           >
             <input
               type='checkbox'
-              checked={menu.menuName === selectedItems.menu}
+              checked={selectedItems.some(
+                (item) => item.menu === menu.menuName
+              )}
               onChange={() => {}}
             />
             <label>{menu.menuName}</label>
           </div>
 
-          {menu.menuName === selectedItems.menu && (
+          {selectedItems.some((item) => item.menu === menu.menuName) && (
             <div>
               {menu.categories.map((category, j) => (
                 <div key={j} className='ml-5'>
                   <div
                     onClick={() =>
-                      handleSelectedCategory(category.categoryName)
+                      handleSelectedCategory(
+                        menu.menuName,
+                        category.categoryName
+                      )
                     }
                   >
                     <input
@@ -105,17 +136,19 @@ const Items = ({ savedData, setSavedData }) => {
                     <label>{category.categoryName}</label>
                   </div>
 
-                  {category.categoryName === selectedItems.category && (
+                  {selectedItems.some(
+                    (item) => item.category === category.categoryName
+                  ) && (
                     <>
                       {category.items.map((item, k) => (
                         <div
                           key={k}
                           className='ml-5'
-                          onClick={() => handleSelectedItem(item)}
+                          // onClick={() => handleSelectedItem(item)}
                         >
                           <input
                             type='checkbox'
-                            checked={selectedItems.items.includes(item)}
+                            // checked={selectedItems.items.includes(item)}
                             onChange={() => {}}
                           />
                           <label>{item}</label>
